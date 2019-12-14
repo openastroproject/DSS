@@ -3,6 +3,7 @@
 #include "RegisterEngine.h"
 #include "Workspace.h"
 #include <direct.h>
+#include "Utils.h"
 
 /* ------------------------------------------------------------------- */
 /* ------------------------------------------------------------------- */
@@ -127,10 +128,10 @@ void CFrameList::SaveListToFile(LPCTSTR szFile)
 				strGUID = szGUID;
 				StringFromCLSID(m_Jobs.m_vJobs[j].m_RefID, &szRefGUID);
 				strRefGUID = szRefGUID;
-				fprintf(hFile, "#JOBID#%s#%s#%s\n", 
-					(LPCSTR)CT2CA(strGUID,CP_UTF8), 
-					(LPCSTR)CT2CA(m_Jobs.m_vJobs[j].m_strName, CP_UTF8), 
-					(LPCSTR)CT2CA(strRefGUID, CP_UTF8));
+				fprintf(hFile, "#JOBID#%s#%s#%s\n",
+                    CStringToChar(strGUID),
+                    CStringToChar(m_Jobs.m_vJobs[j].m_strName),
+                    CStringToChar(strRefGUID));
 			};
 			for (LONG i = 0;i<m_vFiles.size();i++)
 			{
@@ -165,7 +166,7 @@ void CFrameList::SaveListToFile(LPCTSTR szFile)
 
 					//
 					// Check if this file is on the same drive as the file-list file
-					// if not we can't use relative paths and will need to save the 
+					// if not we can't use relative paths and will need to save the
 					// absolute path the the file-list
 					//
 					TCHAR		szItemDrive[1 + _MAX_DRIVE];
@@ -183,14 +184,14 @@ void CFrameList::SaveListToFile(LPCTSTR szFile)
 							FILE_ATTRIBUTE_NORMAL);
 
 						fprintf(hFile, "%ld\t%s\t%s\n", lChecked,
-							(LPCSTR)CT2CA(strType, CP_UTF8),
-							(LPCSTR)CT2CA(szRelPath, CP_UTF8));
+                            CStringToChar(strType),
+                            CStringToChar(szRelPath));
 					}
 					else
 					{
 						fprintf(hFile, "%ld\t%s\t%s\n", lChecked,
-							(LPCSTR)CT2CA(strType, CP_UTF8),
-							(LPCSTR)CT2CA(m_vFiles[lItem].m_strFileName, CP_UTF8));
+                            CStringToChar(strType),
+                            CStringToChar(m_vFiles[lItem].m_strFileName));
 					}
 				};
 			};
@@ -290,7 +291,7 @@ void CFrameList::LoadFilesFromList(LPCTSTR szFileList)
 	DWORD				dwGroupID = 0;
 	GUID				dwJobID = MAINJOBID;
 
-	SetCursor(::LoadCursor(NULL, IDC_WAIT));
+	SetCursor(::LoadCursor(nullptr, IDC_WAIT));
 	hFile = _tfopen(szFileList, _T("rt"));
 	if (hFile)
 	{
@@ -387,8 +388,8 @@ void CFrameList::LoadFilesFromList(LPCTSTR szFileList)
 						pszAbsoluteFile = new TCHAR[length];
 
 						length = GetFullPathName(static_cast<LPCTSTR>(strFile), length, pszAbsoluteFile, nullptr);
-						if (0 == length) ZTRACE_RUNTIME("GetFullPathName for %s failed", 
-							(LPCSTR)CT2CA(strFile, CP_UTF8));
+						if (0 == length)
+                            ZTRACE_RUNTIME("GetFullPathName for %s failed", CStringToChar(strFile));
 
 						// Check that the file exists
 						FILE *		hTemp;
@@ -447,12 +448,12 @@ void CFrameList::LoadFilesFromList(LPCTSTR szFileList)
 		}
 	};
 	m_bDirty = FALSE;
-	SetCursor(::LoadCursor(NULL, IDC_ARROW));
+	SetCursor(::LoadCursor(nullptr, IDC_ARROW));
 };
 
 /* ------------------------------------------------------------------- */
 
-void CFrameList::FillTasks(CAllStackingTasks & tasks, GUID dwJobID)
+void CFrameList::FillTasks(CAllStackingTasks & tasks, GUID const& dwJobID)
 {
 	LONG				lNrComets = 0;
 	BOOL				bReferenceFrameHasComet = FALSE;
